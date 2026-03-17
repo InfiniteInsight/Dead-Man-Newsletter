@@ -1,5 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}{{ template['name'] }} — NewsLetterGo{% endblock %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.ql-font-georgia       { font-family: Georgia, serif; }
+.ql-font-arial         { font-family: Arial, sans-serif; }
+.ql-font-helvetica     { font-family: Helvetica, sans-serif; }
+.ql-font-verdana       { font-family: Verdana, sans-serif; }
+.ql-font-times-new-roman { font-family: 'Times New Roman', serif; }
+.ql-font-trebuchet     { font-family: 'Trebuchet MS', sans-serif; }
+.ql-font-courier       { font-family: 'Courier New', monospace; }
+</style>
 {% block content %}
 <h1>{{ template['name'] }}</h1>
 <p class="text-muted mb-8">{{ template['description'] }}</p>
@@ -13,7 +23,9 @@
                 <div class="form-group">
                     <label>{{ field['label'] }}</label>
                     {% if field['type'] == 'textarea' %}
-                    <textarea name="{{ field['name'] }}" class="template-field" placeholder="{{ field['label'] }}"></textarea>
+                    <div id="editor-{{ field['name'] }}" style="height:180px;background:white;"></div>
+                    <input type="hidden" name="{{ field['name'] }}" id="hidden-{{ field['name'] }}"
+                           value="{{ request.form.get(field['name'], '') }}">
                     {% else %}
                     <input type="text" name="{{ field['name'] }}" class="template-field" placeholder="{{ field['label'] }}">
                     {% endif %}
@@ -55,7 +67,44 @@
     </div>
 </form>
 
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script>
+var Font = Quill.import('formats/font');
+Font.whitelist = ['georgia','arial','helvetica','verdana','times-new-roman','trebuchet','courier'];
+Quill.register(Font, true);
+
+var quillToolbar = [
+  [{ 'font': ['georgia','arial','helvetica','verdana','times-new-roman','trebuchet','courier'] }],
+  [{ 'size': ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline'],
+  ['link'],
+  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  [{ 'color': [] }],
+  ['clean']
+];
+
+var editors = [];
+{% for f in fields %}
+{% if f.type == 'textarea' %}
+var quill_{{ f.name }} = new Quill('#editor-{{ f.name }}', {
+  theme: 'snow',
+  modules: { toolbar: quillToolbar }
+});
+// Restore value if re-rendering (e.g. after preview)
+var existing_{{ f.name }} = document.getElementById('hidden-{{ f.name }}').value;
+if (existing_{{ f.name }}) {
+  quill_{{ f.name }}.root.innerHTML = existing_{{ f.name }};
+}
+editors.push({ editor: quill_{{ f.name }}, fieldName: '{{ f.name }}' });
+{% endif %}
+{% endfor %}
+
+document.querySelector('form').addEventListener('submit', function() {
+  editors.forEach(function(q) {
+    document.getElementById('hidden-' + q.fieldName).value = q.editor.root.innerHTML;
+  });
+});
+
 async function previewEmail() {
     const form = document.getElementById('emailForm');
     const formData = new FormData(form);
