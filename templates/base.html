@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Newsletter App{% endblock %}</title>
+    {% block head %}{% endblock %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -214,5 +215,6 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
