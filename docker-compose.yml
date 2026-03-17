@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # newsletter.db is volume-mounted so data persists across container rebuilds.
+      # IMPORTANT: protect this file — it contains contact emails and the shortener API key.
+      # Run: chmod 600 newsletter.db
+      - ./newsletter.db:/app/newsletter.db
+    env_file:
+      - .env
+    restart: unless-stopped
