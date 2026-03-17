@@ -1,6 +1,3 @@
-import json
-
-
 def _add_contact(db, email, token):
     db.execute(
         "INSERT INTO contacts (email, name, groups, unsubscribe_token) "
