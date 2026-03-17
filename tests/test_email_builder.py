@@ -40,9 +40,8 @@ def test_font_parameter_overrides_settings():
         recipient_email='u@example.com', secret_key='s',
         font='Verdana, sans-serif',
     )
-    assert 'Verdana, sans-serif' in html
-    # 'Georgia' now appears in the ql-font CSS block; check the wrapper div uses Verdana, not Georgia
-    assert 'font-family:Georgia' not in html.replace(' ', '')
+    # Verify the wrapper div uses the overridden font
+    assert 'font-family:Verdana, sans-serif' in html
 
 
 def test_header_image_included_when_set():
