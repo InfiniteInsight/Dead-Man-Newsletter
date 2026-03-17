@@ -2,16 +2,19 @@ import os
 import json
 import smtplib
 import socket
+import re
+import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from dotenv import load_dotenv, set_key
 
 load_dotenv()
 
 from database import get_db, init_db, get_settings
 from mailer import send_email, send_bulk
+import email_builder
 
 ENV_PATH = Path(__file__).parent / '.env'
 
@@ -19,6 +22,13 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-me')
 app.jinja_env.filters['fromjson'] = json.loads
 
+# 1x1 transparent GIF
+TRACKING_GIF = (
+    b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00'
+    b'\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x00\x00\x00\x00'
+    b'\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02'
+    b'\x44\x01\x00\x3b'
+)
 
 # --- Initialize DB on startup (skipped during testing; conftest.py handles this) ---
 if not os.environ.get('TESTING'):
@@ -582,6 +592,36 @@ def history_detail(send_id):
         flash('Send not found.', 'error')
         return redirect(url_for('history'))
     return render_template('history_detail.html', send=send)
+
+
+# ============================================================
+# TRACKING PIXEL
+# ============================================================
+
+@app.route('/track/<int:send_id>/<token>.gif')
+def track_open(send_id, token):
+    """
+    Serve a 1x1 transparent GIF and increment open_count for the send.
+
+    Token is a 16-char hex string derived from HMAC(send_id:email).
+    We accept any 16-char hex token — we can't reverse-verify without the
+    recipient email. The token acts as a modest forgery deterrent.
+    Always returns the GIF (never reveals whether the send_id is valid).
+    """
+    if re.fullmatch(r'[0-9a-f]{16}', token):
+        db = get_db()
+        db.execute(
+            "UPDATE sends SET open_count = open_count + 1 WHERE id = ?",
+            (send_id,)
+        )
+        db.commit()
+        db.close()
+
+    return Response(
+        TRACKING_GIF,
+        mimetype='image/gif',
+        headers={'Cache-Control': 'no-store, no-cache, must-revalidate'}
+    )
 
 
 # ============================================================

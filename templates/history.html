@@ -11,6 +11,7 @@
             <th>Template</th>
             <th>Subject</th>
             <th>Recipients</th>
+            <th>Opens</th>
             <th>View</th>
         </tr>
         {% for send in sends %}
@@ -19,6 +20,7 @@
             <td><span class="badge badge-blue">{{ send['template_name'] }}</span></td>
             <td>{{ send['subject'][:60] }}{% if send['subject']|length > 60 %}...{% endif %}</td>
             <td>{{ send['recipient_count'] }}</td>
+            <td>{{ send['open_count'] }}</td>
             <td><a href="{{ url_for('history_detail', send_id=send['id']) }}" class="btn btn-secondary btn-sm">View</a></td>
         </tr>
         {% endfor %}
