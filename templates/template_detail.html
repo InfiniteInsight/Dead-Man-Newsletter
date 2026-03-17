@@ -50,6 +50,17 @@
                     <label>Or Send Test To (single email)</label>
                     <input type="email" name="test_email" placeholder="test@example.com">
                 </div>
+                <div class="form-group">
+                  <label>Font <small class="text-muted">(default from Settings — change for this send only)</small></label>
+                  <select name="font">
+                    {% for f in fonts %}
+                    <option value="{{ f.value }}"
+                      {% if f.value == settings.default_font %}selected{% endif %}>
+                      {{ f.label }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
                 <div style="display:flex;gap:8px;">
                     <button type="button" class="btn btn-secondary" onclick="previewEmail()">Preview</button>
                     <button type="submit" class="btn btn-primary" onclick="return confirm('Send this email?')">Send</button>

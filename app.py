@@ -330,10 +330,13 @@ def template_detail(slug):
     for row in groups_raw:
         for g in json.loads(row['groups']):
             all_groups.add(g)
-    db.close()
 
     fields = json.loads(tpl['fields'])
-    return render_template('template_detail.html', template=tpl, fields=fields, groups=sorted(all_groups))
+    s = get_settings(db)
+    db.close()
+
+    return render_template('template_detail.html', template=tpl, fields=fields, groups=sorted(all_groups),
+                           fonts=FONT_OPTIONS, settings=s)
 
 
 @app.route('/templates/<slug>/preview', methods=['POST'])
