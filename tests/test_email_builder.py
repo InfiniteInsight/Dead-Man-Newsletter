@@ -41,7 +41,8 @@ def test_font_parameter_overrides_settings():
         font='Verdana, sans-serif',
     )
     assert 'Verdana, sans-serif' in html
-    assert 'Georgia' not in html  # default should not appear
+    # 'Georgia' now appears in the ql-font CSS block; check the wrapper div uses Verdana, not Georgia
+    assert 'font-family:Georgia' not in html.replace(' ', '')
 
 
 def test_header_image_included_when_set():
