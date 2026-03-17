@@ -20,7 +20,7 @@ def _seed_template_and_contact(db):
 
 def test_send_creates_sends_row(client, db):
     _seed_template_and_contact(db)
-    with patch('mailer.send_email'):
+    with patch('app.send_email'):
         client.post('/templates/test-tpl/send', data={
             'title': 'Hello', 'body': 'World', 'target_group': 'all',
         })
@@ -41,7 +41,7 @@ def test_send_inserts_sends_row_before_sending(client, db):
         captured_send_ids.extend([r['id'] for r in rows])
         conn.close()
 
-    with patch('mailer.send_email', side_effect=mock_send):
+    with patch('app.send_email', side_effect=mock_send):
         client.post('/templates/test-tpl/send', data={
             'title': 'Hello', 'body': 'World', 'target_group': 'all',
         })
@@ -51,7 +51,7 @@ def test_send_inserts_sends_row_before_sending(client, db):
 
 def test_send_updates_recipient_count(client, db):
     _seed_template_and_contact(db)
-    with patch('mailer.send_email'):
+    with patch('app.send_email'):
         client.post('/templates/test-tpl/send', data={
             'title': 'Hello', 'body': 'World', 'target_group': 'all',
         })
@@ -66,7 +66,7 @@ def test_send_uses_email_builder_output(client, db):
     def mock_send(email, name, subject, body):
         sent_bodies.append(body)
 
-    with patch('mailer.send_email', side_effect=mock_send):
+    with patch('app.send_email', side_effect=mock_send):
         client.post('/templates/test-tpl/send', data={
             'title': 'Hello', 'body': 'World', 'target_group': 'all',
         })
@@ -78,7 +78,7 @@ def test_send_uses_email_builder_output(client, db):
 
 def test_test_send_to_single_address(client, db):
     _seed_template_and_contact(db)
-    with patch('mailer.send_email') as mock_send:
+    with patch('app.send_email') as mock_send:
         resp = client.post('/templates/test-tpl/send', data={
             'title': 'Hello', 'body': 'World',
             'test_email': 'test@example.com',

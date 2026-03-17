@@ -1,8 +1,9 @@
 import os
 import json
+import re
+import secrets
 import smtplib
 import socket
-import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -13,7 +14,6 @@ load_dotenv()
 
 from database import get_db, init_db, get_settings
 from mailer import send_email, send_bulk
-import mailer
 import email_builder
 
 ENV_PATH = Path(__file__).parent / '.env'
@@ -400,7 +400,7 @@ def template_send(slug):
             font=font,
         )
         try:
-            mailer.send_email(test_email, '', subject, full_html)
+            send_email(test_email, '', subject, full_html)
             flash(f'Test email sent to {test_email}!', 'success')
         except Exception as e:
             flash(f'Error sending test: {e}', 'error')
@@ -437,7 +437,7 @@ def template_send(slug):
         # Ensure unsubscribe_token exists (lazy backfill for old contacts)
         token = r['unsubscribe_token']
         if not token:
-            token = __import__('secrets').token_hex(16)
+            token = secrets.token_hex(16)
             db.execute(
                 "UPDATE contacts SET unsubscribe_token=? WHERE id=?",
                 (token, r['id'])
@@ -453,7 +453,7 @@ def template_send(slug):
             font=font,
         )
         try:
-            mailer.send_email(r['email'], r['name'], subject, full_html)
+            send_email(r['email'], r['name'], subject, full_html)
             successes += 1
         except Exception as e:
             errors.append((r['email'], str(e)))
