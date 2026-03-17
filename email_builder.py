@@ -6,7 +6,7 @@ def _make_pixel_token(send_id, recipient_email, secret_key):
     """Generate a 16-char hex HMAC token for the tracking pixel URL."""
     key = secret_key.encode() if isinstance(secret_key, str) else secret_key
     msg = f"{send_id}:{recipient_email}".encode()
-    return hmac.new(key, msg, hashlib.sha256).hexdigest()[:16]
+    return hmac.new(key, msg, digestmod=hashlib.sha256).hexdigest()[:16]
 
 
 def build_email(body, settings, unsubscribe_token, send_id, recipient_email,
@@ -51,11 +51,15 @@ def build_email(body, settings, unsubscribe_token, send_id, recipient_email,
             f'style="width:100%;max-width:600px;display:block;" alt="">'
         )
 
-    # Unsubscribe footer
-    unsubscribe_url = f'{base_url}/unsubscribe/{unsubscribe_token}'
+    # Unsubscribe footer (link only works if base_url is configured)
+    if base_url:
+        unsubscribe_url = f'{base_url}/unsubscribe/{unsubscribe_token}'
+        unsub_html = f'<a href="{unsubscribe_url}" style="color:#999;">Unsubscribe</a>'
+    else:
+        unsub_html = 'Unsubscribe'
     parts.append(
         f'<div style="text-align:center;padding:20px;font-size:12px;color:#999;">'
-        f'<a href="{unsubscribe_url}" style="color:#999;">Unsubscribe</a>'
+        f'{unsub_html}'
         f'&nbsp;&middot;&nbsp; Sent by NewsLetterGo'
         f'</div>'
     )
